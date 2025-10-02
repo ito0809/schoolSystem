@@ -1,64 +1,70 @@
 <%@ page contentType="text/html; charset=UTF-8" %>
-<%@ page import="java.util.List, model.classdata.ClassData" %>
+<%@ page import="java.util.*, model.classdata.ClassData" %>
+<!DOCTYPE html>
 <html>
 <head>
-  <title>クラス一覧</title>
+  <title>学科一覧</title>
   <style>
-    table{border-collapse:collapse} th,td{border:1px solid #ccc;padding:6px}
-    label{display:inline-block;width:80px}
+    table{border-collapse:collapse}
+    th,td{border:1px solid #ccc; padding:6px;} /* cellpadding不要 */
   </style>
 </head>
 <body>
-<h2>クラス一覧</h2>
+  <h1>学科一覧</h1>
 
-<form method="get" action="<c:url value='/classes'/>">
-  <label>学校ID</label><input type="text" name="school_id" value="${school_id}"/>
-  <label>コースID</label><input type="text" name="course_id" value="${course_id}"/>
-  <label>名称</label><input type="text" name="q" value="${q}"/>
-  <button type="submit">検索</button>
-  <a href="<c:url value='/classes/add'/>">新規追加</a>
+<% String ctx = request.getContextPath(); %>
+<form method="get">
+  学科ID: <input type="number" name="id" required><br><br>
+
+  <!-- 編集：/classdata/ClassUpdateServlet に GET -->
+  <button type="submit"
+          formaction="<%= ctx %>/classdata/ClassUpdateServlet"
+          formmethod="get">編集</button>
+
+  <!-- 削除はそのまま -->
+  <button type="submit"
+          formaction="<%= ctx %>/classdata/ClassDeleteServlet"
+          formmethod="get">削除</button>
 </form>
 
-<c:if test="${not empty param.created}">
-  <p style="color:green">作成しました（ID: ${param.created}）。</p>
-</c:if>
-<c:if test="${not empty param.updated}">
-  <p style="color:green">更新しました（ID: ${param.updated}）。</p>
-</c:if>
-<c:if test="${param.deleted == '1'}">
-  <p style="color:green">削除しました。</p>
-</c:if>
-<c:if test="${param.error == 'constraint'}">
-  <p style="color:red">削除できません（在籍や開講などから参照されています）。</p>
-</c:if>
 
-<table>
-  <tr><th>ID</th><th>クラス名</th><th>コースID</th><th>学校ID</th><th>操作</th></tr>
-  <c:forEach var="cdata" items="${list}">
+  <br>
+
+<%! // ★ 警告なく安全に取り出すヘルパー
+    @SuppressWarnings("unchecked")
+    private java.util.List<model.classdata.ClassData> getClassList(javax.servlet.http.HttpServletRequest req){
+        Object o = req.getAttribute("classList");
+        if (o instanceof java.util.List<?>) {
+            try { return (java.util.List<model.classdata.ClassData>) o; }
+            catch (ClassCastException ignore) {}
+        }
+        return java.util.Collections.emptyList();
+    }
+%>
+
+  <table>
     <tr>
-      <td>${cdata.classId}</td>
-      <td>${cdata.className}</td>
-      <td>${cdata.courseId}</td>
-      <td>${cdata.schoolId}</td>
-      <td>
-        <a href="<c:url value='/classes/edit?id=${cdata.classId}'/>">編集</a>
-        <a href="<c:url value='/classes/delete?id=${cdata.classId}'/>">削除</a>
-      </td>
+      <th>学科ID</th><th>学科名</th>
     </tr>
-  </c:forEach>
-</table>
+    <%
+      List<ClassData> list = getClassList(request); // ← ここで取得
+      if (!list.isEmpty()) {
+        for (ClassData cd : list) {
+    %>
+    <tr>
+      <td><%= cd.getClassId() %></td>
+      <td><%= cd.getClassName() %></td>
+    </tr>
+    <%
+        }
+      } else {
+    %>
+    <tr><td colspan="2">データが存在しません</td></tr>
+    <% } %>
+  </table>
 
-<div style="margin-top:8px">
-  <c:forEach var="p" begin="1" end="${pages}">
-    <c:choose>
-      <c:when test="${p == page}"><b>[${p}]</b></c:when>
-      <c:otherwise>
-        <a href="?page=${p}&q=${q}&school_id=${school_id}&course_id=${course_id}">[${p}]</a>
-      </c:otherwise>
-    </c:choose>
-  </c:forEach>
-</div>
-
-<p><a href="<c:url value='/'/>">メニューへ</a></p>
+  <form action="<%= request.getContextPath() %>/classdata/class_add.jsp" method="get" style="margin-top:10px;">
+    <input type="submit" value="追加">
+  </form>
 </body>
 </html>

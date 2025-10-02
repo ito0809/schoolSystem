@@ -13,7 +13,7 @@ import dao.classdata.ClassListDao;
 import dao.classdata.ClassUpdateDao;
 import model.classdata.ClassData;
 
-@WebServlet("/classes/edit")
+@WebServlet("/classdata/ClassUpdateServlet")
 public class ClassUpdateServlet extends HttpServlet {
 
     @Override
@@ -28,7 +28,7 @@ public class ClassUpdateServlet extends HttpServlet {
                 return;
             }
             req.setAttribute("classData", c);
-            req.getRequestDispatcher("/WEB-INF/views/classdata/form.jsp").forward(req, resp);
+            req.getRequestDispatcher("/classdata/class_updata.jsp").forward(req, resp);
         } catch (NumberFormatException e) {
             resp.sendRedirect(req.getContextPath()+"/classes?badid=1");
         } catch (SQLException e) {
@@ -57,7 +57,7 @@ public class ClassUpdateServlet extends HttpServlet {
                 try { c.setSchoolId(Integer.parseInt(schoolIdStr)); } catch(Exception ignore){}
                 req.setAttribute("classData", c);
             }
-            req.getRequestDispatcher("/WEB-INF/views/classdata/form.jsp").forward(req, resp);
+            req.getRequestDispatcher("/classdata/\"classdata/class_updata.jsp").forward(req, resp);
             return;
         }
 
@@ -72,13 +72,13 @@ public class ClassUpdateServlet extends HttpServlet {
             if (!ok) {
                 req.setAttribute("errorMessage", "更新対象が見つかりませんでした。");
                 req.setAttribute("classData", c);
-                req.getRequestDispatcher("/WEB-INF/views/classdata/form.jsp").forward(req, resp);
+                req.getRequestDispatcher("/classdata/class_updata.jsp").forward(req, resp);
                 return;
             }
             resp.sendRedirect(req.getContextPath() + "/classes?updated=" + c.getClassId());
         } catch (NumberFormatException e) {
             req.setAttribute("errorMessage", "IDは数値で入力してください。");
-            req.getRequestDispatcher("/WEB-INF/views/classdata/form.jsp").forward(req, resp);
+            req.getRequestDispatcher("/classdata/class_updata.jsp").forward(req, resp);
         } catch (SQLException e) {
             throw new ServletException(e);
         }

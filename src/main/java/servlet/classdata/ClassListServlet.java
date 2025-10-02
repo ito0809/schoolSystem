@@ -35,14 +35,14 @@ public class ClassListServlet extends HttpServlet {
             int total = dao.countAll(schoolId, courseId, q);
             int pages = (int)Math.ceil(total / (double)limit);
 
-            req.setAttribute("list", list);
+            req.setAttribute("classList", list);
             req.setAttribute("q", q);
             req.setAttribute("school_id", schoolId);
             req.setAttribute("course_id", courseId);
             req.setAttribute("page", page);
             req.setAttribute("pages", pages);
 
-            req.getRequestDispatcher("/WEB-INF/views/classdata/list.jsp").forward(req, resp);
+            req.getRequestDispatcher("/classdata/class_list.jsp").forward(req, resp);
         } catch (SQLException e) {
             throw new ServletException(e);
         }
