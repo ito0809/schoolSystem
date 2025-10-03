@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import dao.master.GenderListDao;
 import dao.student.StudentAddDao;
 import model.student.StudentData;
 
@@ -19,22 +20,25 @@ public class StudentAddServlet extends HttpServlet {
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp)
       throws ServletException, IOException {
+    try {
+      loadMasters(req);                                   // 性別・学校の候補を渡す
+    } catch (SQLException e) { throw new ServletException(e); }
     req.getRequestDispatcher("/student/student_add.jsp").forward(req, resp);
   }
 
   @Override
   protected void doPost(HttpServletRequest req, HttpServletResponse resp)
       throws ServletException, IOException {
-
     req.setCharacterEncoding("UTF-8");
 
-    // 必須チェック
     String lastName  = trim(req.getParameter("last_name"));
     String firstName = trim(req.getParameter("first_name"));
     String schoolIdS = trim(req.getParameter("school_id"));
+
     if (isEmpty(lastName) || isEmpty(firstName) || isEmpty(schoolIdS)) {
-      req.setAttribute("errorMessage", "姓・名・学校IDは必須です。");
-      req.setAttribute("studentData", bindFromRequest(req)); // 入力値戻し
+      req.setAttribute("errorMessage", "姓・名・学校は必須です。");
+      req.setAttribute("studentData", bindFromRequest(req)); // 入力保持
+      try { loadMasters(req); } catch (SQLException ignore) {}
       req.getRequestDispatcher("/student/student_add.jsp").forward(req, resp);
       return;
     }
@@ -46,23 +50,31 @@ public class StudentAddServlet extends HttpServlet {
       s.setSchoolId(Integer.parseInt(schoolIdS));
 
       boolean ok = new StudentAddDao().insert(s);
-      if (!ok) {
+      if (ok) {
+        resp.sendRedirect(req.getContextPath()+"/students?added=1");
+      } else {
         req.setAttribute("errorMessage", "登録に失敗しました。");
         req.setAttribute("studentData", s);
+        loadMasters(req);
         req.getRequestDispatcher("/student/student_add.jsp").forward(req, resp);
-        return;
       }
-      resp.sendRedirect(req.getContextPath() + "/students?added=1");
     } catch (NumberFormatException e) {
-      req.setAttribute("errorMessage", "数値項目の形式が正しくありません。（学校ID／性別IDなど）");
+      req.setAttribute("errorMessage", "数値項目の形式が正しくありません。");
       req.setAttribute("studentData", bindFromRequest(req));
+      try { loadMasters(req); } catch (SQLException ignore) {}
       req.getRequestDispatcher("/student/student_add.jsp").forward(req, resp);
     } catch (SQLException e) {
       throw new ServletException(e);
     }
   }
 
-  // ---- helpers ----
+  /* ---- helpers ---- */
+
+  private void loadMasters(HttpServletRequest req) throws SQLException {
+    req.setAttribute("genderList", new GenderListDao().findAll());
+    
+  }
+
   private static StudentData bindFromRequest(HttpServletRequest req) {
     StudentData s = new StudentData();
     s.setStudentNumber(trim(req.getParameter("student_number")));
@@ -83,8 +95,9 @@ public class StudentAddServlet extends HttpServlet {
     s.setGraduationDate(parseLocalDate(req.getParameter("graduation_date")));
     return s;
   }
-  private static Integer parseInteger(String s){ try{ return isEmpty(s)? null: Integer.valueOf(s.trim()); }catch(Exception e){ throw new NumberFormatException(); } }
-  private static LocalDate parseLocalDate(String s){ try{ return isEmpty(s)? null: LocalDate.parse(s.trim()); }catch(Exception e){ return null; } }
+
+  private static Integer parseInteger(String s){ try{ return (s==null||s.isBlank())? null: Integer.valueOf(s.trim()); }catch(Exception e){ return null; } }
+  private static LocalDate parseLocalDate(String s){ try{ return (s==null||s.isBlank())? null: LocalDate.parse(s.trim()); }catch(Exception e){ return null; } }
   private static boolean isEmpty(String s){ return s==null || s.isBlank(); }
   private static String trim(String s){ return s==null? null: s.trim(); }
 }

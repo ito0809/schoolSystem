@@ -22,6 +22,16 @@ public class StudentData {
   private LocalDate graduationDate;
   private LocalDateTime createdAt;
   private LocalDateTime updatedAt;
+  
+//追加フィールド
+private String genderName;   // 表示用
+private String schoolName;   // 表示用
+
+public String getGenderName() { return genderName; }
+public void setGenderName(String genderName) { this.genderName = genderName; }
+public String getSchoolName() { return schoolName; }
+public void setSchoolName(String schoolName) { this.schoolName = schoolName; }
+
 
   // --- getters/setters ---
   public int getStudentId() { return studentId; }

@@ -23,6 +23,7 @@ public class StudentDeleteServlet extends HttpServlet {
     if (idStr == null) { resp.sendRedirect(req.getContextPath()+"/students"); return; }
     try {
       int id = Integer.parseInt(idStr);
+      // ★ findById は gender_name / school_name を返す版を使用済み
       StudentData s = new StudentListDao().findById(id);
       if (s == null) { resp.sendRedirect(req.getContextPath()+"/students?notfound=1"); return; }
       req.setAttribute("studentData", s);
@@ -43,9 +44,7 @@ public class StudentDeleteServlet extends HttpServlet {
       int id = Integer.parseInt(idStr);
       boolean ok = new StudentDeleteDao().delete(id);
       resp.sendRedirect(req.getContextPath()+"/students?deleted="+(ok? id : "0"));
-    } catch (NumberFormatException e) {
-      resp.sendRedirect(req.getContextPath()+"/students?badid=1");
-    } catch (SQLException e) {
+    } catch (Exception e) {
       throw new ServletException(e);
     }
   }

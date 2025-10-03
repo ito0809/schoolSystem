@@ -18,8 +18,10 @@ public class StudentAddDao extends BaseDao {
          school_id, enrollment_date, graduation_date)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """;
-    try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
-      int i=1;
+    try (Connection con = getConnection();
+         PreparedStatement ps = con.prepareStatement(sql)) {
+
+      int i = 1;
       ps.setString(i++, s.getStudentNumber());
       ps.setString(i++, s.getLastName());
       ps.setString(i++, s.getFirstName());
@@ -35,7 +37,6 @@ public class StudentAddDao extends BaseDao {
       ps.setInt(i++, s.getSchoolId());
       if (s.getEnrollmentDate()==null) ps.setNull(i++, Types.DATE); else ps.setDate(i++, Date.valueOf(s.getEnrollmentDate()));
       if (s.getGraduationDate()==null) ps.setNull(i++, Types.DATE); else ps.setDate(i++, Date.valueOf(s.getGraduationDate()));
-
       return ps.executeUpdate()==1;
     }
   }

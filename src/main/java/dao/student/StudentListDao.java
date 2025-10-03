@@ -17,22 +17,28 @@ public class StudentListDao extends BaseDao {
 
   /** 一覧（学校ID / キーワード / ページング） */
   public List<StudentData> findAll(Integer schoolId, String keyword, int limit, int offset) throws SQLException {
-    String sql = """
-      SELECT student_id, student_number, last_name, first_name, last_name_kana, first_name_kana,
-             birth_date, gender_id, postal_code, prefecture, city, address_line, tel,
-             school_id, enrollment_date, graduation_date, created_at, updated_at
-      FROM `students`
-      WHERE (? IS NULL OR school_id = ?)
-        AND ( ? IS NULL
-              OR last_name       LIKE CONCAT('%', ?, '%')
-              OR first_name      LIKE CONCAT('%', ?, '%')
-              OR student_number  LIKE CONCAT('%', ?, '%')
-              OR last_name_kana  LIKE CONCAT('%', ?, '%')
-              OR first_name_kana LIKE CONCAT('%', ?, '%')
-            )
-      ORDER BY student_id ASC
-      LIMIT ? OFFSET ?
-    """;
+	  String sql = """
+			  SELECT
+			    s.student_id, s.student_number, s.last_name, s.first_name, s.last_name_kana, s.first_name_kana,
+			    s.birth_date, s.gender_id, s.postal_code, s.prefecture, s.city, s.address_line, s.tel,
+			    s.school_id, s.enrollment_date, s.graduation_date, s.created_at, s.updated_at,
+			    g.gender_name   AS gender_name,      -- ★ 追加
+			    sc.school_name  AS school_name       -- ★ 追加
+			  FROM `students` s
+			  LEFT JOIN `genders` g ON s.gender_id = g.gender_id           -- ★ 性別マスタ
+			  LEFT JOIN `schools` sc ON s.school_id = sc.school_id         -- ★ 学校マスタ
+			  WHERE (? IS NULL OR s.school_id = ?)
+			    AND ( ? IS NULL
+			          OR s.last_name       LIKE CONCAT('%', ?, '%')
+			          OR s.first_name      LIKE CONCAT('%', ?, '%')
+			          OR s.student_number  LIKE CONCAT('%', ?, '%')
+			          OR s.last_name_kana  LIKE CONCAT('%', ?, '%')
+			          OR s.first_name_kana LIKE CONCAT('%', ?, '%')
+			        )
+			  ORDER BY s.student_id ASC
+			  LIMIT ? OFFSET ?
+			""";
+
 
     try (Connection con = getConnection();
          PreparedStatement ps = con.prepareStatement(sql)) {
@@ -100,19 +106,30 @@ public class StudentListDao extends BaseDao {
   }
 
   /** 主キー取得 */
-  public StudentData findById(int id) throws SQLException {
-    String sql = """
-      SELECT student_id, student_number, last_name, first_name, last_name_kana, first_name_kana,
-             birth_date, gender_id, postal_code, prefecture, city, address_line, tel,
-             school_id, enrollment_date, graduation_date, created_at, updated_at
-      FROM `students` WHERE student_id = ?
-    """;
-    try (Connection con = getConnection();
-         PreparedStatement ps = con.prepareStatement(sql)) {
-      ps.setInt(1, id);
-      try (ResultSet rs = ps.executeQuery()) { return rs.next() ? map(rs) : null; }
-    }
-  }
+//dao.student.StudentListDao
+
+public StudentData findById(int id) throws SQLException {
+ String sql = """
+   SELECT
+     s.student_id, s.student_number, s.last_name, s.first_name, s.last_name_kana, s.first_name_kana,
+     s.birth_date, s.gender_id, s.postal_code, s.prefecture, s.city, s.address_line, s.tel,
+     s.school_id, s.enrollment_date, s.graduation_date, s.created_at, s.updated_at,
+     g.gender_name  AS gender_name,       -- ★ 追加
+     sc.school_name AS school_name        -- ★ 追加
+   FROM `students` s
+   LEFT JOIN `genders` g ON s.gender_id = g.gender_id       -- ★ 性別マスタ
+   LEFT JOIN `schools` sc ON s.school_id = sc.school_id     -- ★ 学校マスタ
+   WHERE s.student_id = ?
+ """;
+ try (Connection con = getConnection();
+      PreparedStatement ps = con.prepareStatement(sql)) {
+   ps.setInt(1, id);
+   try (ResultSet rs = ps.executeQuery()) {
+     return rs.next() ? map(rs) : null;
+   }
+ }
+}
+
 
   private StudentData map(ResultSet rs) throws SQLException {
     StudentData s = new StudentData();
@@ -139,6 +156,9 @@ public class StudentListDao extends BaseDao {
     Timestamp uat = rs.getTimestamp("updated_at");
     s.setCreatedAt(cat != null ? cat.toLocalDateTime() : null);
     s.setUpdatedAt(uat != null ? uat.toLocalDateTime() : null);
+    s.setGenderName(rs.getString("gender_name"));   // 追加
+    s.setSchoolName(rs.getString("school_name"));   // 追加
+
     return s;
   }
 }

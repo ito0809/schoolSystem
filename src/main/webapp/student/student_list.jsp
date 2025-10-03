@@ -25,9 +25,9 @@
 <table>
   <tr class="nowrap">
     <th>ID</th><th>学籍番号</th><th>姓</th><th>名</th>
-    <th>セイ</th><th>メイ</th><th>生年月日</th><th>性別ID</th>
+    <th>セイ</th><th>メイ</th><th>生年月日</th><th>性別</th>
     <th>郵便番号</th><th>都道府県</th><th>市区町村</th><th>番地等</th><th>TEL</th>
-    <th>学校ID</th><th>入学日</th><th>卒業日</th><th>作成日時</th><th>更新日時</th>
+    <th>学校</th><th>入学日</th><th>卒業日</th><th>作成日時</th><th>更新日時</th>
   </tr>
 <%
   Object attr = request.getAttribute("studentList");
@@ -49,13 +49,13 @@
     <td><%= s.getLastNameKana()==null?"":s.getLastNameKana() %></td>
     <td><%= s.getFirstNameKana()==null?"":s.getFirstNameKana() %></td>
     <td><%= s.getBirthDate()==null?"":s.getBirthDate() %></td>
-    <td><%= s.getGenderId()==null?"":s.getGenderId() %></td>
+    <td><%= s.getGenderName()==null?"":s.getGenderName() %></td>
     <td><%= s.getPostalCode()==null?"":s.getPostalCode() %></td>
     <td><%= s.getPrefecture()==null?"":s.getPrefecture() %></td>
     <td><%= s.getCity()==null?"":s.getCity() %></td>
     <td><%= s.getAddressLine()==null?"":s.getAddressLine() %></td>
     <td><%= s.getTel()==null?"":s.getTel() %></td>
-    <td><%= s.getSchoolId() %></td>
+    <td><%= s.getSchoolName()==null?"":s.getSchoolName() %></td>
     <td><%= s.getEnrollmentDate()==null?"":s.getEnrollmentDate() %></td>
     <td><%= s.getGraduationDate()==null?"":s.getGraduationDate() %></td>
     <td><%= s.getCreatedAt()==null?"":s.getCreatedAt() %></td>
