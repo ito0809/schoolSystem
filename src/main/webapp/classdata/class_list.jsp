@@ -13,19 +13,48 @@
   <h1>学科一覧</h1>
 
 <% String ctx = request.getContextPath(); %>
-<form method="get">
-  学科ID: <input type="number" name="id" required><br><br>
 
-  <!-- 編集：/classdata/ClassUpdateServlet に GET -->
-  <button type="submit"
-          formaction="<%= ctx %>/classdata/ClassUpdateServlet"
-          formmethod="get">編集</button>
+<!-- 画面に見える入力欄は１つだけ -->
+学科ID:
+<input type="number" id="classIdInput" required style="width:120px">
+<br><br>
 
-  <!-- 削除はそのまま -->
-  <button type="submit"
-          formaction="<%= ctx %>/classdata/ClassDeleteServlet"
-          formmethod="get">削除</button>
+<!-- 編集用：独立したGETフォーム（hiddenにidを入れて送る） -->
+<form id="editForm" action="<%=ctx%>/classdata/ClassUpdateServlet" method="get" style="display:inline;">
+  <input type="hidden" name="id" id="editId">
+  <button type="submit">編集</button>
 </form>
+
+<!-- 削除用：独立したGETフォーム（hiddenにidを入れて送る） -->
+<form id="deleteForm" action="<%=ctx%>/classdata/ClassDeleteServlet" method="get" style="display:inline;margin-left:8px;">
+  <input type="hidden" name="id" id="deleteId">
+  <button type="submit">削除</button>
+</form>
+
+<script>
+  // 入力値 → hidden へ常に同期
+  const box = document.getElementById('classIdInput');
+  const editId = document.getElementById('editId');
+  const delId  = document.getElementById('deleteId');
+
+  function sync() {
+    editId.value = box.value.trim();
+    delId.value  = box.value.trim();
+  }
+  box.addEventListener('input', sync);
+  sync();
+
+  // 入力未指定で送らせない（見栄えはそのまま）
+  document.getElementById('editForm').addEventListener('submit', (e)=>{
+    if (!box.value.trim()) { box.reportValidity(); e.preventDefault(); }
+  });
+  document.getElementById('deleteForm').addEventListener('submit', (e)=>{
+    if (!box.value.trim()) { box.reportValidity(); e.preventDefault(); }
+  });
+</script>
+
+
+
 
 
   <br>
@@ -63,7 +92,7 @@
     <% } %>
   </table>
 
-  <form action="<%= request.getContextPath() %>/classdata/class_add.jsp" method="get" style="margin-top:10px;">
+  <form action="<%= request.getContextPath() %>/classdata/ClassAddServlet" method="get" style="margin-top:10px;">
     <input type="submit" value="追加">
   </form>
 </body>

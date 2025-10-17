@@ -3,23 +3,21 @@ package model.classdata;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-/**
- * クラス（学級）を表すモデル
- * classes テーブルに対応
- */
 public class ClassData implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    private Integer classId;       // 主キー
-    private String className;      // クラス名（例: 1A）
-    private Integer courseId;      // 紐づくコースID
-    private Integer schoolId;      // 紐づく学校ID
+    private Integer classId;        // PK
+    private String  className;      // 学科名
+    private Integer courseId;       // コースID
+    private Integer schoolId;       // 学校ID
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    // --- コンストラクタ ---
-    public ClassData() {}
+    // ★ 表示用の名称
+    private String  courseName;     // コース名（JOINで取得）
+    private String  schoolName;     // 学校名（JOINで取得）
 
+    public ClassData() {}
     public ClassData(Integer classId, String className, Integer courseId, Integer schoolId) {
         this.classId = classId;
         this.className = className;
@@ -27,56 +25,32 @@ public class ClassData implements Serializable {
         this.schoolId = schoolId;
     }
 
-    // --- getter/setter ---
-    public Integer getClassId() {
-        return classId;
-    }
+    // --- getter / setter ---
+    public Integer getClassId() { return classId; }
+    public void setClassId(Integer classId) { this.classId = classId; }
 
-    public void setClassId(Integer classId) {
-        this.classId = classId;
-    }
+    public String getClassName() { return className; }
+    public void setClassName(String className) { this.className = className; }
 
-    public String getClassName() {
-        return className;
-    }
+    public Integer getCourseId() { return courseId; }
+    public void setCourseId(Integer courseId) { this.courseId = courseId; }
 
-    public void setClassName(String className) {
-        this.className = className;
-    }
+    public Integer getSchoolId() { return schoolId; }
+    public void setSchoolId(Integer schoolId) { this.schoolId = schoolId; }
 
-    public Integer getCourseId() {
-        return courseId;
-    }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 
-    public void setCourseId(Integer courseId) {
-        this.courseId = courseId;
-    }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 
-    public Integer getSchoolId() {
-        return schoolId;
-    }
+    // --- 表示用名称 ---
+    public String getCourseName() { return courseName; }
+    public void setCourseName(String courseName) { this.courseName = courseName; }
 
-    public void setSchoolId(Integer schoolId) {
-        this.schoolId = schoolId;
-    }
+    public String getSchoolName() { return schoolName; }
+    public void setSchoolName(String schoolName) { this.schoolName = schoolName; }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    // --- toString（デバッグ用）---
     @Override
     public String toString() {
         return "ClassData{" +
@@ -84,9 +58,10 @@ public class ClassData implements Serializable {
                 ", className='" + className + '\'' +
                 ", courseId=" + courseId +
                 ", schoolId=" + schoolId +
+                ", courseName='" + courseName + '\'' +
+                ", schoolName='" + schoolName + '\'' +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
                 '}';
     }
 }
-

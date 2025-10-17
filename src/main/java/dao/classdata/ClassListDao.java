@@ -17,15 +17,19 @@ public class ClassListDao extends BaseDao {
     /** 一覧（検索・ページング） */
     public List<ClassData> findAll(Integer schoolId, Integer courseId, String keyword,
                                    int limit, int offset) throws SQLException {
-        String sql = """
-            SELECT class_id, class_name, course_id, school_id, created_at, updated_at
-            FROM classes
-            WHERE (? IS NULL OR school_id = ?)
-              AND (? IS NULL OR course_id = ?)
-              AND (? IS NULL OR class_name LIKE CONCAT('%', ?, '%'))
-            ORDER BY class_name ASC, class_id ASC
-            LIMIT ? OFFSET ?
-        """;
+    	String sql = """
+    			  SELECT c.class_id, c.class_name, c.course_id, c.school_id,
+    			         c.created_at, c.updated_at,
+    			         co.course_name AS course_name
+    			  FROM classes c
+    			  LEFT JOIN course co ON co.course_id = c.course_id   -- ★ courses → course
+    			  WHERE (? IS NULL OR c.school_id = ?)
+    			    AND (? IS NULL OR c.course_id = ?)
+    			    AND (? IS NULL OR c.class_name LIKE CONCAT('%', ?, '%'))
+    			  ORDER BY c.class_name ASC, c.class_id ASC
+    			  LIMIT ? OFFSET ?
+    			""";
+
         try (Connection con = getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
 
@@ -79,11 +83,23 @@ public class ClassListDao extends BaseDao {
     }
 
     /** 主キー単体取得（編集前表示など） */
+ // src/main/java/dao/classdata/ClassListDao.java
     public ClassData findById(int classId) throws SQLException {
-        String sql = """
-            SELECT class_id, class_name, course_id, school_id, created_at, updated_at
-            FROM classes WHERE class_id = ?
-        """;
+    	String sql = """
+    			  SELECT
+    			    c.class_id,
+    			    c.class_name,
+    			    c.course_id,
+    			    c.school_id,
+    			    c.created_at,          -- 追加
+    			    c.updated_at,          -- 追加
+    			    co.course_name  AS course_name,
+    			    s.school_name   AS school_name
+    			  FROM classes c
+    			  LEFT JOIN course  co ON co.course_id = c.course_id    -- ※テーブル名は実名に
+    			  LEFT JOIN schools s ON s.school_id  = c.school_id
+    			  WHERE c.class_id = ?
+    			""";
         try (Connection con = getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, classId);
@@ -92,6 +108,9 @@ public class ClassListDao extends BaseDao {
             }
         }
     }
+
+
+    
 
     private ClassData map(ResultSet rs) throws SQLException {
         ClassData c = new ClassData();
@@ -103,6 +122,10 @@ public class ClassListDao extends BaseDao {
         Timestamp uat = rs.getTimestamp("updated_at");
         c.setCreatedAt(cat != null ? cat.toLocalDateTime() : null);
         c.setUpdatedAt(uat != null ? uat.toLocalDateTime() : null);
+        try { c.setCourseName(rs.getString("course_name")); } catch (SQLException ignore) {}
+        try { c.setSchoolName(rs.getString("school_name")); } catch (SQLException ignore) {}
+
+
         return c;
     }
 }

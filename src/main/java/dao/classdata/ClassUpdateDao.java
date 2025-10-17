@@ -9,18 +9,21 @@ import model.classdata.ClassData;
 
 public class ClassUpdateDao extends BaseDao {
 
-    /** 更新：1件更新なら true */
-    public boolean update(ClassData c) throws SQLException {
-        String sql = "UPDATE classes SET class_name=?, course_id=?, school_id=? WHERE class_id=?";
-        try (Connection con = getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
-
-            ps.setString(1, c.getClassName());
-            ps.setInt(2, c.getCourseId());
-            ps.setInt(3, c.getSchoolId());
-            ps.setInt(4, c.getClassId());
-
-            return ps.executeUpdate() == 1;
-        }
+  /** 戻り値: 更新件数(1で成功) */
+  public int update(ClassData c) throws SQLException {
+    String sql = """
+      UPDATE classes
+         SET class_name = ?, course_id = ?, school_id = ?
+       WHERE class_id = ?
+    """;
+    try (Connection con = getConnection();
+         PreparedStatement ps = con.prepareStatement(sql)) {
+      int i=1;
+      ps.setString(i++, c.getClassName());
+      ps.setInt(i++, c.getCourseId());
+      ps.setInt(i++, c.getSchoolId());
+      ps.setInt(i++, c.getClassId());
+      return ps.executeUpdate();
     }
+  }
 }

@@ -1,5 +1,10 @@
 <%@ page contentType="text/html; charset=UTF-8" %>
 <% String ctx = request.getContextPath(); %>
+<% String errorMessage = (String)request.getAttribute("errorMessage"); %>
+<% if (errorMessage != null) { %>
+  <p style="color:red;"><%= errorMessage %></p>
+<% } %>
+
 <!DOCTYPE html><html><head><title>コース追加</title></head><body>
 <h1>コース追加</h1>
 <form action="<%=ctx%>/coursedata/CourseAddServlet" method="post">
