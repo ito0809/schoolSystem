@@ -1,7 +1,9 @@
 <%@ page contentType="text/html; charset=UTF-8" %>
 <%@ page import="model.student.StudentData" %>
-<% String ctx = request.getContextPath();
-   StudentData s = (StudentData)request.getAttribute("studentData"); %>
+<%
+  String ctx = request.getContextPath();
+  StudentData s = (StudentData) request.getAttribute("studentData");
+%>
 <!DOCTYPE html>
 <html>
 <head>
@@ -37,9 +39,12 @@
   <tr><th>番地等</th><td><%= nv(s.getAddressLine()) %></td></tr>
   <tr><th>TEL</th><td><%= nv(s.getTel()) %></td></tr>
 
-  <!-- ★ 学校はID表示のまま -->
-  <tr><th>学校ID</th><td><%= s.getSchoolId() %></td></tr>
-
+ <tr>
+  <th>学校</th>
+  <td><%= (s.getSchoolName()!=null && !s.getSchoolName().isEmpty())
+          ? s.getSchoolName()
+          : ("ID:" + s.getSchoolId()) %></td>
+</tr>
   <tr><th>入学日</th><td><%= s.getEnrollmentDate()==null?"":s.getEnrollmentDate() %></td></tr>
   <tr><th>卒業日</th><td><%= s.getGraduationDate()==null?"":s.getGraduationDate() %></td></tr>
 </table>

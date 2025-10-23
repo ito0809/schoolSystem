@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import dao.master.GenderListDao;
+import dao.school.SchoolListDao;
 import dao.student.StudentAddDao;
 import model.student.StudentData;
 
@@ -72,6 +73,7 @@ public class StudentAddServlet extends HttpServlet {
 
   private void loadMasters(HttpServletRequest req) throws SQLException {
     req.setAttribute("genderList", new GenderListDao().findAll());
+    req.setAttribute("schoolList", new SchoolListDao().findAll());
     
   }
 

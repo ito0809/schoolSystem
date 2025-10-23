@@ -1,11 +1,15 @@
 <%@ page contentType="text/html; charset=UTF-8" %>
-<%@ page import="java.util.List, model.student.StudentData, model.master.Gender" %>
+<%@ page import="java.util.List, model.student.StudentData, model.master.Gender, model.school.SchoolData" %>
 <%
   String ctx = request.getContextPath();
   StudentData sd = (StudentData) request.getAttribute("studentData");
   List<Gender> genderList = (List<Gender>) request.getAttribute("genderList");
   Integer selGenderId = (sd != null) ? sd.getGenderId() : null;
   String msg = (String) request.getAttribute("errorMessage");
+
+  // ★ 学校マスタ（サーブレットから受け取る）
+  List<SchoolData> schoolList = (List<SchoolData>) request.getAttribute("schoolList");
+  Integer selSchoolId = (sd != null) ? sd.getSchoolId() : null;
 %>
 <!DOCTYPE html>
 <html>
@@ -71,11 +75,21 @@
   <div><label>TEL</label><input type="text" name="tel"
            value="<%= sd!=null&&sd.getTel()!=null?sd.getTel():"" %>"></div>
 
-  <!-- 学校はID入力のまま -->
-  <div><label>学校ID</label>
-    <input type="number" name="school_id" required
-           value="<%= sd!=null ? sd.getSchoolId() : "" %>">
-  </div>
+ <!-- 学校：名前で選択（送信値は school_id） -->
+<div><label>学校</label>
+  <select name="school_id" required>
+    <option value="">--選択--</option>
+    <% if (schoolList != null) {
+         for (SchoolData sc : schoolList) {
+           boolean sel = (selSchoolId != null && selSchoolId.equals(sc.getSchoolId())); %>
+      <option value="<%= sc.getSchoolId() %>" <%= sel ? "selected" : "" %>>
+        <%= sc.getSchoolName() %>
+      </option>
+    <%   }
+       } %>
+  </select>
+</div>
+
 
   <div><label>入学日</label><input type="date" name="enrollment_date"
            value="<%= sd!=null&&sd.getEnrollmentDate()!=null?sd.getEnrollmentDate():"" %>"></div>
