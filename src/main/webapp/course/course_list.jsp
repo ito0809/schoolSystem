@@ -30,7 +30,7 @@ private java.util.List<model.course.CourseData> getCourseList(
 }
 %>
 <table>
-<tr><th>ID</th><th>コース名</th><th>学校ID</th></tr>
+<tr><th>ID</th><th>コース名</th><th>学校</th></tr>
 <%
   java.util.List<model.course.CourseData> list = getCourseList(request);
   for (model.course.CourseData c : list) {
@@ -38,7 +38,7 @@ private java.util.List<model.course.CourseData> getCourseList(
   <tr>
     <td><%= c.getCourseId() %></td>
     <td><%= c.getCourseName() %></td>
-    <td><%= c.getSchoolId() %></td>
+    <td><%= c.getSchoolName() %></td> <!-- ★学校名表示 -->
   </tr>
 <% } %>
 

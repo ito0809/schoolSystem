@@ -7,6 +7,8 @@ public class SubjectData {
   private Integer subfieldId;
   private String subjectName;
   private BigDecimal credits; // null 可
+  private String  subfieldName;
+
 
   public Integer getSubjectId() { return subjectId; }
   public void setSubjectId(Integer subjectId) { this.subjectId = subjectId; }
@@ -19,4 +21,7 @@ public class SubjectData {
 
   public BigDecimal getCredits() { return credits; }
   public void setCredits(BigDecimal credits) { this.credits = credits; }
+  
+  public String getSubfieldName() { return subfieldName; }
+  public void setSubfieldName(String subfieldName) { this.subfieldName = subfieldName; }
 }

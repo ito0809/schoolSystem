@@ -15,14 +15,17 @@ public class SubjectListDao extends BaseDao {
 
   // 検索: サブフィールドID任意, キーワード(科目名), ページング
   public List<SubjectData> findAll(Integer subfieldId, String keyword, int limit, int offset) throws SQLException {
-    String sql = """
-      SELECT subject_id, subfield_id, subject_name, credits
-      FROM subjects
-      WHERE (? IS NULL OR subfield_id = ?)
-        AND (? IS NULL OR subject_name LIKE CONCAT('%', ?, '%'))
-      ORDER BY subject_id ASC
-      LIMIT ? OFFSET ?
-    """;
+	  String sql = """
+		      SELECT s.subject_id, s.subfield_id, s.subject_name, s.credits,
+		             sf.subfield_name                                -- ★JOIN名
+		      FROM subjects s
+		      LEFT JOIN subfields sf ON sf.subfield_id = s.subfield_id
+		      WHERE (? IS NULL OR s.subfield_id = ?)
+		        AND (? IS NULL OR s.subject_name LIKE CONCAT('%', ?, '%'))
+		      ORDER BY s.subject_id
+		      LIMIT ? OFFSET ?
+		    """;
+
     try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
       int i = 1;
       if (subfieldId == null) { ps.setNull(i++, Types.INTEGER); ps.setNull(i++, Types.INTEGER); }
@@ -61,21 +64,29 @@ public class SubjectListDao extends BaseDao {
   }
 
   public SubjectData findById(int id) throws SQLException {
-    String sql = "SELECT subject_id, subfield_id, subject_name, credits FROM subjects WHERE subject_id = ?";
-    try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
-      ps.setInt(1, id);
-      try (ResultSet rs = ps.executeQuery()) {
-        return rs.next() ? map(rs) : null;
-      }
-    }
-  }
-
+	    String sql = """
+	        SELECT s.subject_id, s.subfield_id, s.subject_name, s.credits,
+	               sf.subfield_name
+	        FROM subjects s
+	        LEFT JOIN subfields sf ON sf.subfield_id = s.subfield_id
+	        WHERE s.subject_id = ?
+	    """;
+	    try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+	        ps.setInt(1, id);
+	        try (ResultSet rs = ps.executeQuery()) {
+	            return rs.next() ? map(rs) : null; // map() は既に subfield_name を拾う実装でOK
+	        }
+	    }
+	}
   private SubjectData map(ResultSet rs) throws SQLException {
-    SubjectData s = new SubjectData();
-    s.setSubjectId(rs.getInt("subject_id"));
-    int sf = rs.getInt("subfield_id"); s.setSubfieldId(rs.wasNull() ? null : sf);
-    s.setSubjectName(rs.getString("subject_name"));
-    java.math.BigDecimal cr = rs.getBigDecimal("credits"); s.setCredits(cr); // null 可
-    return s;
-  }
+	    SubjectData s = new SubjectData();
+	    s.setSubjectId(rs.getInt("subject_id"));
+	    int sf = rs.getInt("subfield_id"); 
+	    s.setSubfieldId(rs.wasNull() ? null : sf);
+	    s.setSubjectName(rs.getString("subject_name"));
+	    s.setCredits(rs.getBigDecimal("credits"));
+	    // ★JOINで取った名前をモデルへ（列が無いケースは握りつぶし）
+	    try { s.setSubfieldName(rs.getString("subfield_name")); } catch (SQLException ignore) {}
+	    return s;
+	}
 }

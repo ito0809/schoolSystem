@@ -16,15 +16,17 @@ public class CourseListDao extends BaseDao {
     /** 一覧（学校ID・キーワード・ページング） */
     public List<CourseData> findAll(Integer schoolId, String keyword,
                                     int limit, int offset) throws SQLException {
-        String sql = """
-            SELECT course_id, course_name, school_id, created_at, updated_at
-            FROM `course`
-            WHERE (? IS NULL OR school_id = ?)
-              AND (? IS NULL OR course_name LIKE CONCAT('%', ?, '%'))
-            ORDER BY course_name ASC, course_id ASC
-            LIMIT ? OFFSET ?
-        """;
-
+    	String sql = """
+    			  SELECT c.course_id, c.course_name, c.school_id,
+    			         s.school_name
+    			  FROM course c
+    			  LEFT JOIN schools s ON s.school_id = c.school_id
+    			  WHERE (? IS NULL OR c.school_id = ?)
+    			    AND (? IS NULL OR c.course_name LIKE CONCAT('%', ?, '%'))
+    			  ORDER BY c.course_id
+    			  LIMIT ? OFFSET ?
+    			""";
+    	
         try (Connection con = getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
 
@@ -74,10 +76,13 @@ public class CourseListDao extends BaseDao {
     /** 主キー単体取得 */
     public CourseData findById(int courseId) throws SQLException {
         String sql = """
-            SELECT course_id, course_name, school_id, created_at, updated_at
-            FROM `course`
-            WHERE course_id = ?
-        """;
+            SELECT c.course_id, c.course_name, c.school_id,
+         s.school_name
+  FROM course c
+  LEFT JOIN schools s ON s.school_id = c.school_id
+  WHERE c.course_id = ?
+""";
+
         try (Connection con = getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, courseId);
@@ -89,15 +94,12 @@ public class CourseListDao extends BaseDao {
 
     /** 1行マッピング */
     private CourseData map(ResultSet rs) throws SQLException {
-        CourseData c = new CourseData();
-        c.setCourseId(rs.getInt("course_id"));
-        c.setCourseName(rs.getString("course_name"));
-        c.setSchoolId(rs.getInt("school_id"));
-        // created_at/updated_at を DTO に持っているなら以下を有効化
-        // Timestamp cat = rs.getTimestamp("created_at");
-        // Timestamp uat = rs.getTimestamp("updated_at");
-        // c.setCreatedAt(cat != null ? cat.toLocalDateTime() : null);
-        // c.setUpdatedAt(uat != null ? uat.toLocalDateTime() : null);
-        return c;
-    }
+    	  CourseData c = new CourseData();
+    	  c.setCourseId(rs.getInt("course_id"));
+    	  c.setCourseName(rs.getString("course_name"));
+    	  int sid = rs.getInt("school_id");
+    	  c.setSchoolId(rs.wasNull() ? null : sid);
+    	  try { c.setSchoolName(rs.getString("school_name")); } catch (SQLException ignore) {}
+    	  return c;
+    	}
 }

@@ -1,7 +1,7 @@
+// src/main/java/servlet/subject/SubjectUpdateServlet.java
 package servlet.subject;
 
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.sql.SQLException;
 
 import javax.servlet.ServletException;
@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import dao.subfield.SubfieldListDao;
 import dao.subject.SubjectListDao;
 import dao.subject.SubjectUpdateDao;
 import model.subject.SubjectData;
@@ -17,17 +18,27 @@ import model.subject.SubjectData;
 @WebServlet("/subjectdata/SubjectUpdateServlet")
 public class SubjectUpdateServlet extends HttpServlet {
 
-  @Override
-  protected void doGet(HttpServletRequest req, HttpServletResponse resp)
+  private void loadMasters(HttpServletRequest req) throws SQLException {
+    // プルダウン用に全サブフィールド
+    req.setAttribute("subfieldList",
+        new SubfieldListDao().findAll(null, null, 10_000, 0));
+  }
+
+  @Override protected void doGet(HttpServletRequest req, HttpServletResponse resp)
       throws ServletException, IOException {
     String idStr = req.getParameter("id");
-    if (idStr == null) { resp.sendRedirect(req.getContextPath()+"/subjects"); return; }
+    if (idStr == null || idStr.isBlank()) {
+      resp.sendRedirect(req.getContextPath()+"/subjects?badid=1"); return;
+    }
     try {
       int id = Integer.parseInt(idStr);
       SubjectData s = new SubjectListDao().findById(id);
       if (s == null) { resp.sendRedirect(req.getContextPath()+"/subjects?notfound=1"); return; }
+
       req.setAttribute("subjectData", s);
+      loadMasters(req);
       req.getRequestDispatcher("/subject/subject_update.jsp").forward(req, resp);
+
     } catch (NumberFormatException e) {
       resp.sendRedirect(req.getContextPath()+"/subjects?badid=1");
     } catch (SQLException e) { throw new ServletException(e); }
@@ -37,42 +48,59 @@ public class SubjectUpdateServlet extends HttpServlet {
   protected void doPost(HttpServletRequest req, HttpServletResponse resp)
       throws ServletException, IOException {
     req.setCharacterEncoding("UTF-8");
-    String idStr = req.getParameter("subject_id");
-    String name  = req.getParameter("subject_name");
 
-    if (idStr==null || name==null || name.isBlank()) {
-      req.setAttribute("errorMessage","必須項目（科目ID／科目名）が未入力です。");
-      req.setAttribute("subjectData", bind(req));
+    String idStr       = req.getParameter("subject_id");
+    String subfieldId  = req.getParameter("subfield_id");
+    String subjectName = req.getParameter("subject_name");
+    String creditsStr  = req.getParameter("credits");
+
+    // 必須チェック
+    if (idStr==null || idStr.isBlank() ||
+        subfieldId==null || subfieldId.isBlank() ||
+        subjectName==null || subjectName.isBlank() ||
+        creditsStr==null || creditsStr.isBlank()) {
+      req.setAttribute("errorMessage","サブフィールド・科目名・単位は必須です。");
+      keepInput(req);
+      try { loadMasters(req); } catch (SQLException ignore) {}
       req.getRequestDispatcher("/subject/subject_update.jsp").forward(req, resp);
       return;
     }
 
     try {
-      SubjectData s = bind(req);
-      s.setSubjectId(Integer.parseInt(idStr.trim()));
-      s.setSubjectName(name.trim());
+      SubjectData s = new SubjectData();
+      s.setSubjectId(Integer.parseInt(idStr));
+      s.setSubfieldId(Integer.parseInt(subfieldId));   // select の値
+      s.setSubjectName(subjectName.trim());
+      s.setCredits(new java.math.BigDecimal(creditsStr.trim()));
 
+      // ★ DAO が boolean を返す想定
       boolean ok = new SubjectUpdateDao().update(s);
-      if (!ok) {
-        req.setAttribute("errorMessage","更新対象が見つかりませんでした。");
+      if (ok) {
+        resp.sendRedirect(req.getContextPath() + "/subjects?updated=" + s.getSubjectId());
+        return;
+      } else {
+        req.setAttribute("errorMessage","更新対象が見つかりません。");
         req.setAttribute("subjectData", s);
+        loadMasters(req);
         req.getRequestDispatcher("/subject/subject_update.jsp").forward(req, resp);
         return;
       }
-      resp.sendRedirect(req.getContextPath()+"/subjects?updated="+s.getSubjectId());
-    } catch (NumberFormatException e) {
-      req.setAttribute("errorMessage","数値形式が正しくありません。");
-      req.setAttribute("subjectData", bind(req));
+
+    } catch (Exception e) {
+      req.setAttribute("errorMessage","入力値の形式が不正です。");
+      keepInput(req);
+      try { loadMasters(req); } catch (SQLException ignore) {}
       req.getRequestDispatcher("/subject/subject_update.jsp").forward(req, resp);
-    } catch (SQLException e) { throw new ServletException(e); }
+    }
   }
 
-  private static SubjectData bind(HttpServletRequest req){
+
+  private static void keepInput(HttpServletRequest req){
     SubjectData s = new SubjectData();
-    try { String id=req.getParameter("subject_id"); if(id!=null) s.setSubjectId(Integer.valueOf(id)); } catch(Exception ignore){}
-    try { String sf=req.getParameter("subfield_id"); if(sf!=null && !sf.isBlank()) s.setSubfieldId(Integer.valueOf(sf)); } catch(Exception ignore){}
+    try { s.setSubjectId(Integer.valueOf(req.getParameter("subject_id"))); } catch(Exception ignore){}
+    try { s.setSubfieldId(Integer.valueOf(req.getParameter("subfield_id"))); } catch(Exception ignore){}
     s.setSubjectName(req.getParameter("subject_name"));
-    try { String cr=req.getParameter("credits"); if(cr!=null && !cr.isBlank()) s.setCredits(new BigDecimal(cr)); } catch(Exception ignore){}
-    return s;
+    try { s.setCredits(new java.math.BigDecimal(req.getParameter("credits"))); } catch(Exception ignore){}
+    req.setAttribute("subjectData", s);
   }
 }

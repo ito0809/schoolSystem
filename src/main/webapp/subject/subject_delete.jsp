@@ -14,7 +14,15 @@
 <p>以下の科目を削除します。よろしいですか？</p>
 <table>
   <tr><th>ID</th><td><%= s.getSubjectId() %></td></tr>
-  <tr><th>サブフィールドID</th><td><%= s.getSubfieldId()==null?"":s.getSubfieldId() %></td></tr>
+  <tr>
+  <th>サブフィールド</th>
+  <td>
+    <%= (s.getSubfieldName()!=null && !s.getSubfieldName().isBlank())
+          ? s.getSubfieldName()
+          : (s.getSubfieldId()==null ? "" : "ID:" + s.getSubfieldId()) %>
+  </td>
+</tr>
+
   <tr><th>科目名</th><td><%= s.getSubjectName()==null?"":s.getSubjectName() %></td></tr>
   <tr><th>単位</th><td><%= s.getCredits()==null?"":s.getCredits() %></td></tr>
 </table>

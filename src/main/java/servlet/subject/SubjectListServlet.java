@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import dao.subfield.SubfieldListDao;
 import dao.subject.SubjectListDao;
 import model.subject.SubjectData;
 
@@ -28,16 +29,25 @@ public class SubjectListServlet extends HttpServlet {
     int offset = (pageNo - 1) * size;
 
     try {
-      SubjectListDao dao = new SubjectListDao();
-      List<SubjectData> list = dao.findAll(subfield, q, size, offset);
-      int total = dao.countAll(subfield, q);
-      req.setAttribute("subjectList", list);
-      req.setAttribute("q", q);
-      req.setAttribute("subfield", subfield);
-      req.setAttribute("page", pageNo);
-      req.setAttribute("total", total);
-      req.setAttribute("pages", (int)Math.ceil(total/(double)size));
-      req.getRequestDispatcher("/subject/subject_list.jsp").forward(req, resp);
+        SubjectListDao dao = new SubjectListDao();
+        List<SubjectData> list = dao.findAll(subfield, q, size, offset);
+        int total = dao.countAll(subfield, q);
+
+        // ★ 先に全部 Request に積む
+        req.setAttribute("subjectList", list);
+        req.setAttribute("q", q);
+        req.setAttribute("subfield", subfield);
+        req.setAttribute("page", pageNo);
+        req.setAttribute("total", total);
+        req.setAttribute("pages", (int)Math.ceil(total/(double)size));
+        // ★ プルダウン用マスタをここで渡す
+        req.setAttribute(
+            "subfieldList",
+            new SubfieldListDao().findAll(null, null, 10000, 0)
+        );
+
+        // ★ 最後にforward
+        req.getRequestDispatcher("/subject/subject_list.jsp").forward(req, resp);
     } catch (SQLException e) { throw new ServletException(e); }
   }
 }
